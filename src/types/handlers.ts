@@ -1,3 +1,4 @@
+import { Namespace } from '@/namespace';
 import { Socket } from 'socket.io';
 
 /**
@@ -104,16 +105,14 @@ export type AuthHandlerProps = {
   /** The socket that is being authenticated */
   socket: Socket;
   /** The namespace that the socket is attempting to access */
-  namespace: string;
-  /** The handler that the socket is attempting to access */
-  handler?: string;
+  namespace: Namespace;
 };
 
 /**
  * An authentication handler that determines whether a client is authorized to
  * access a particular {@link Namespace} or {@link Handler}.
  *
- * {@link AuthHandler}s are called before the {@link Handler} is executed, and
+ * {@link AuthHandler}s are called before any {@link Handler}s are executed, and
  * can also act as a middleware for the {@link Namespace}.
  */
 export type AuthHandler = (

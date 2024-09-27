@@ -1,12 +1,25 @@
 import { Karami } from './server';
 import {
   AuthHandler,
-  Handler
+  Handler,
+  HandlerProps
 } from './types/handlers';
 import {
   Namespace as IONamespace,
   Socket
 } from 'socket.io';
+
+
+/**
+ * Empty {@link HandlerProps} for use in special handlers like `connect` and `disconnect`.
+ */
+const EmptyHandlerProps: HandlerProps = {
+  data: {},
+  success: () => {},
+  error: () => {},
+  callback: () => {},
+  socket: {} as Socket
+};
 
 /**
  * A namespace within a {@link Karami} server.
@@ -46,9 +59,9 @@ export class Namespace {
    * Handles a new socket connection to the server.
    * @param socket The socket that connected to the server
    */
-  private onConnection(socket: Socket) {
-    if (!this.checkNamespaceAuth(socket))
-      return this.unauthorizeAll();
+  private async onConnection(socket: Socket) {
+    if (!(await this.checkNamespaceAuth(socket)))
+      return this.unauthorizeAll(socket);
 
     this.applyHandlers(socket);
   }
@@ -56,6 +69,7 @@ export class Namespace {
   /**
    * Checks all {@link AuthHandler}s for the given socket and {@link Handler}.
    * @param socket The socket to check the authentication for
+   * @param data The data that was passed to the handler
    * @param handler The handler to check the authentication for
    * @returns Whether the socket is authorized to access the handler
    */
@@ -68,8 +82,7 @@ export class Namespace {
       if (
         !(await auth({
           socket,
-          namespace: this.name,
-          handler: handler.name
+          namespace: this
         }))
       ) {
         return false;
@@ -90,7 +103,7 @@ export class Namespace {
       if (
         !(await auth({
           socket,
-          namespace: this.name
+          namespace: this
         }))
       ) {
         return false;
@@ -123,21 +136,12 @@ export class Namespace {
 
   /**
    * Unauthorizes all handlers in the namespace.
+   * @param socket The socket to unauthorize
    */
-  private unauthorizeAll() {
-    this.io.use((socket) => {
-      socket.onAny((data, callback) => {
-        if (
-          !callback ||
-          typeof callback !== 'function'
-        )
-          return;
-        callback({
-          success: false,
-          error: 'Unauthorized'
-        });
-      });
-    });
+  private unauthorizeAll(socket: Socket) {
+    this.handlers.forEach(handler =>
+      this.unauthorized(socket, handler.name)
+    );
   }
 
   /**
@@ -189,7 +193,9 @@ export class Namespace {
       ) {
         callback({
           success: false,
-          error: `Invalid type for field ${key}: ${typeof data[key]} (expected ${schema[key]})`
+          error: `Invalid type for field ${key}: ${typeof data[
+            key
+          ]} (expected ${schema[key]})`
         });
         return false;
       }
@@ -203,7 +209,7 @@ export class Namespace {
    * @param socket The socket to apply the handlers to
    */
   applyHandlers(socket: Socket) {
-    this.handlers.forEach(async (handler) => {
+    this.handlers.forEach(async handler => {
       // check authentication
       if (
         !(await this.checkAuth(socket, handler))
@@ -212,6 +218,22 @@ export class Namespace {
           socket,
           handler.name
         );
+
+      switch (handler.name) {
+        case 'connect':
+          return handler.method({
+            ...EmptyHandlerProps,
+            socket
+          });
+        case 'disconnect':
+          socket.on('disconnect', () =>
+            handler.method({
+              ...EmptyHandlerProps,
+              socket
+            })
+          );
+          return;
+      }
 
       socket.on(
         handler.name,
@@ -225,12 +247,11 @@ export class Namespace {
           )
             return;
 
-          console.log('Handling', handler.name);
           handler.method({
             data,
-            success: (data) =>
+            success: data =>
               callback({ success: true, data }),
-            error: (error) =>
+            error: error =>
               callback({ success: false, error }),
             callback,
             socket
@@ -246,5 +267,13 @@ export class Namespace {
    */
   addHandler(handler: Handler) {
     this.handlers.push(handler);
+  }
+
+  /**
+   * Adds a new authentication handler to the namespace.
+   * @param handler The authentication handler to add to the namespace
+   */
+  addAuthHandler(handler: AuthHandler) {
+    this.authHandlers.push(handler);
   }
 }
