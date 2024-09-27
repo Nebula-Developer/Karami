@@ -36,8 +36,9 @@ export function mapDefaultConfig(
 }
 
 /**
- * A server that hosts a `socket.io` server, and hosts multiple namespaces under
- * a single server instance.
+ * A {@link Karami} server, which hosts multiple {@link Namespace} instances.
+ * This class is responsible for handling the base server configuration, and
+ * delegating the handling of namespaces to the {@link Namespace} class.
  */
 export class Karami {
   /** The `socket.io` server instance */
@@ -61,8 +62,8 @@ export class Karami {
         origin: '*'
       }
     });
-    
-    this.config.namespaces?.forEach((namespace) => {
+
+    this.config.namespaces?.forEach(namespace => {
       namespace.load();
     });
   }
