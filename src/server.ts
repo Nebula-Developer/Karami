@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
-import { Handler } from './types/handlers';
 import { Server as HttpServer } from 'http';
+import { Namespace } from './namespace';
 
 /** Config that is used to initialize a new {@link Karami} instance. */
 export type ServerConfig = {
@@ -17,10 +17,10 @@ export type ServerConfig = {
   host?: string;
 
   /**
-   * A list of handlers that will be added to the server upon initialization
+   * A list of namespaces that will be added to the server upon initialization
    * @default []
    */
-  handlers?: Handler[];
+  namespaces?: Namespace[];
 };
 
 /** Maps default config for any undefined values in the provided
@@ -31,13 +31,13 @@ export function mapDefaultConfig(
   return {
     port: config.port || 3000,
     host: config.host || 'localhost',
-    handlers: config.handlers || []
+    namespaces: config.namespaces || []
   };
 }
 
 /**
- * A server that hosts a `socket.io` server, and manages the routing of incoming
- * requests through {@link Handler}s.
+ * A server that hosts a `socket.io` server, and hosts multiple namespaces under
+ * a single server instance.
  */
 export class Karami {
   /** The `socket.io` server instance */
@@ -45,9 +45,6 @@ export class Karami {
 
   /** The http server instance */
   httpServer: HttpServer;
-
-  /** The handlers that are registered with the server */
-  public handlers: Handler[];
 
   /** The configuration for the server */
   public config: ServerConfig;
@@ -64,7 +61,10 @@ export class Karami {
         origin: '*'
       }
     });
-    this.handlers = this.config.handlers || [];
+    
+    this.config.namespaces?.forEach((namespace) => {
+      namespace.load();
+    });
   }
 
   /** Starts the server, and listens on the specified port and host. */
@@ -78,6 +78,17 @@ export class Karami {
         );
       }
     );
+  }
+
+  /**
+   * Creates a new namespace for this server.
+   * @param name The name of the new namespace
+   * @returns The new namespace
+   */
+  createNamespace(name: string) {
+    const namespace = new Namespace(name, this);
+    namespace.load();
+    return namespace;
   }
 }
 

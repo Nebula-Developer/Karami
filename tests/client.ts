@@ -1,15 +1,7 @@
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3001/test', {
-  auth: {
-    token: 'test'
-  }
-});
+const socket = io('http://localhost:3001/test');
 
-socket.on('connect', () => {
-  console.log('Connected to server');
-
-  socket.emit('test', {}, (res) => {
-    console.log(res);
-  });
+socket.emit('hello', { name: 'world' }, (res: any) => {
+  console.log(res);
 });

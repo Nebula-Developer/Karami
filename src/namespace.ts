@@ -176,9 +176,12 @@ export class Namespace {
     if (!schema) return true;
 
     for (const key in schema) {
+      const rule = typeof schema[key] === 'object' ? schema[key] : { type: schema[key], required: true };
+
       if (
-        data[key] == null ||
-        data[key] == undefined
+        (data[key] == null ||
+        data[key] == undefined) &&
+        rule.required
       ) {
         callback({
           success: false,
@@ -188,8 +191,8 @@ export class Namespace {
       }
 
       if (
-        schema[key] !== 'any' &&
-        typeof data[key] !== schema[key]
+        data[key] != null &&
+        typeof data[key] !== rule.type
       ) {
         callback({
           success: false,
@@ -276,4 +279,9 @@ export class Namespace {
   addAuthHandler(handler: AuthHandler) {
     this.authHandlers.push(handler);
   }
+
+  /**
+   * Method to ensure that the namespace has been initialized.
+   */
+  load() { }
 }

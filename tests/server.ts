@@ -1,42 +1,23 @@
-import { AuthHandler, Namespace } from '../dist';
-import { Karami } from '../dist/server';
+import { Karami } from "@/server";
 
-const server = new Karami({
-  port: 3001
-});
 
-const authHandler: AuthHandler = async ({ socket }) => {
-  return socket.handshake.auth.token === 'test';
-};
-
-const testNamespace = new Namespace(
-  'test',
-  server
-);
-
-testNamespace.addAuthHandler(authHandler);
-
-testNamespace.addHandler({
-  name: 'test',
-  method: async ({ success }) => {
-    success('Hello, world!');
-  },
-  schema: {
-    name: 'string'
-  }
-});
+const server = new Karami({ port: 3001 });
+const testNamespace = server.createNamespace('test');
 
 testNamespace.addHandler({
   name: 'connect',
-  method: async ({ socket }) => {
-    console.log('Got a connection from', socket.id);
+  method: ({ socket }) => {
+    console.log('Connected:', socket.id);
   }
 });
 
 testNamespace.addHandler({
-  name: 'disconnect',
-  method: async ({ socket }) => {
-    console.log('Got a disconnection from', socket.id);
+  name: 'hello',
+  schema: {
+    name: { type: 'string', required: true }
+  },
+  method: ({ success, data }) => {
+    success({ message: `Hello, ${data.name}!` });
   }
 });
 
