@@ -1,0 +1,34 @@
+{
+  "name": "karami",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "doc": "typedoc --out docs src",
+    "dev": "tsc -w",
+    "build": "tsc",
+    "lint": "eslint",
+    "format": "prettier --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^22.7.3",
+    "@types/socket.io": "^3.0.2",
+    "socket.io": "^4.8.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "@stylistic/eslint-plugin-ts": "^2.8.0",
+    "@types/eslint__js": "^8.42.3",
+    "@types/socket.io-client": "^3.0.0",
+    "eslint": "^9.11.1",
+    "eslint-typescript": "^1.1.0",
+    "socket.io-client": "^4.8.0",
+    "typedoc": "^0.26.7",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.7.0"
+  }
+}
