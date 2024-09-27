@@ -1,6 +1,5 @@
 import { Karami } from "@/server";
 
-
 const server = new Karami({ port: 3001 });
 const testNamespace = server.createNamespace('test');
 
@@ -13,11 +12,21 @@ testNamespace.addHandler({
 
 testNamespace.addHandler({
   name: 'hello',
-  schema: {
-    name: { type: 'string', required: true }
-  },
+  schema: { name: 'string' },
   method: ({ success, data }) => {
     success({ message: `Hello, ${data.name}!` });
+  },
+  auth: [
+    async ({ socket }) => {
+      return socket.handshake.auth.token === 'secret';
+    }    
+  ]
+});
+
+testNamespace.addHandler({
+  name: 'test',
+  method: ({ success }) => {
+    success({ message: 'Test successful!' });
   }
 });
 
