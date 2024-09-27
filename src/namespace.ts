@@ -165,10 +165,7 @@ export class Namespace {
     if (!data || typeof data !== 'object') {
       callback({
         success: false,
-        error:
-          'Provided data is not an object (got ' +
-          typeof data +
-          ')'
+        error: `Provided data is not an object (got '${typeof data}')`
       });
       return false;
     }
@@ -185,7 +182,7 @@ export class Namespace {
       ) {
         callback({
           success: false,
-          error: `Missing required field: ${key}`
+          error: `Missing required field: '${key}'`
         });
         return false;
       }
@@ -196,9 +193,7 @@ export class Namespace {
       ) {
         callback({
           success: false,
-          error: `Invalid type for field ${key}: ${typeof data[
-            key
-          ]} (expected ${schema[key]})`
+          error: `Invalid type for field '${key}' (expected '${rule.type}', got '${typeof data[key]}')`
         });
         return false;
       }
