@@ -1,4 +1,3 @@
-
 # Planning
 
 The general goal is to make Karami extensible for a variety of project requirements.
@@ -11,4 +10,3 @@ This will primarily be done through a lack of actual useful functionality, and i
     - Check private authentication handlers
       - Return unauthorized if any handlers fail
       - Construct handler for client and link to client
-  

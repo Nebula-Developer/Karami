@@ -1,4 +1,4 @@
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { Handler } from './types/handlers';
 import { Server as HttpServer } from 'http';
 
@@ -25,7 +25,9 @@ export type ServerConfig = {
 
 /** Maps default config for any undefined values in the provided
  * {@link ServerConfig}. */
-export function mapDefaultConfig(config: ServerConfig): ServerConfig {
+export function mapDefaultConfig(
+  config: ServerConfig
+): ServerConfig {
   return {
     port: config.port || 3000,
     host: config.host || 'localhost',
@@ -54,26 +56,29 @@ export class Karami {
    * Initializes a new {@link Karami} instance.
    * @param config The configuration for the new instance
    */
-  constructor(
-    config: ServerConfig = {}
-  ) {
+  constructor(config: ServerConfig = {}) {
     this.config = mapDefaultConfig(config);
     this.httpServer = new HttpServer();
     this.io = new Server(this.httpServer, {
       cors: {
-        origin: '*',
-      },
+        origin: '*'
+      }
     });
     this.handlers = this.config.handlers || [];
   }
 
   /** Starts the server, and listens on the specified port and host. */
   start() {
-    this.httpServer.listen(this.config.port, this.config.host, () => {
-      console.log(`Server running at http://${this.config.host}:${this.config.port}/`);
-    });
+    this.httpServer.listen(
+      this.config.port,
+      this.config.host,
+      () => {
+        console.log(
+          `Server running at http://${this.config.host}:${this.config.port}/`
+        );
+      }
+    );
   }
-
 }
 
 export const testServer = new Server();

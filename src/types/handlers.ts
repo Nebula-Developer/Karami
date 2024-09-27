@@ -1,6 +1,4 @@
-import { Karami } from "@/server";
-import { Socket } from "socket.io";
-import { Namespace as IONamespace } from "socket.io";
+import { Socket } from 'socket.io';
 
 /**
  * The base response passed to a client from a {@link Handler}.
@@ -19,7 +17,7 @@ export type HandlerResponse = {
  */
 export type ClientCallback = (
   /** The response from the {@link Handler} that is passed to the client */
-  res: HandlerResponse,
+  res: HandlerResponse
 ) => void;
 
 /**
@@ -79,7 +77,7 @@ export type HandlerProps = {
  */
 export type HandlerMethod = (
   /** The properties that are passed to a socket handler */
-  props: HandlerProps,
+  props: HandlerProps
 ) => void;
 
 /**
@@ -114,8 +112,10 @@ export type AuthHandlerProps = {
 /**
  * An authentication handler that determines whether a client is authorized to
  * access a particular {@link Namespace} or {@link Handler}.
- * 
+ *
  * {@link AuthHandler}s are called before the {@link Handler} is executed, and
  * can also act as a middleware for the {@link Namespace}.
  */
-export type AuthHandler = (props: AuthHandlerProps) => Promise<boolean>;
+export type AuthHandler = (
+  props: AuthHandlerProps
+) => Promise<boolean>;

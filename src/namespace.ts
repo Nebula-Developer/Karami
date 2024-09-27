@@ -1,6 +1,12 @@
-import { Karami } from "./server";
-import { AuthHandler, Handler } from "./types/handlers";
-import { Namespace as IONamespace, Socket } from "socket.io";
+import { Karami } from './server';
+import {
+  AuthHandler,
+  Handler
+} from './types/handlers';
+import {
+  Namespace as IONamespace,
+  Socket
+} from 'socket.io';
 
 /**
  * A namespace within a {@link Karami} server.
@@ -11,7 +17,7 @@ export class Namespace {
 
   /** The handlers that are registered with the namespace */
   handlers: Handler[] = [];
-  
+
   /** The authentication handlers that are registered with the entire namespace */
   authHandlers: AuthHandler[] = [];
 
@@ -30,7 +36,10 @@ export class Namespace {
     this.name = name;
     this.server = server;
     this.io = server.io.of(name);
-    this.io.on('connection', this.onConnection.bind(this));
+    this.io.on(
+      'connection',
+      this.onConnection.bind(this)
+    );
   }
 
   /**
@@ -50,10 +59,19 @@ export class Namespace {
    * @param handler The handler to check the authentication for
    * @returns Whether the socket is authorized to access the handler
    */
-  private async checkAuth(socket: Socket, handler: Handler) {
+  private async checkAuth(
+    socket: Socket,
+    handler: Handler
+  ) {
     if (!handler.auth) return true;
-    for (let auth of handler.auth) {
-      if (!(await auth({ socket, namespace: this.name, handler: handler.name }))) {
+    for (const auth of handler.auth) {
+      if (
+        !(await auth({
+          socket,
+          namespace: this.name,
+          handler: handler.name
+        }))
+      ) {
         return false;
       }
     }
@@ -65,9 +83,16 @@ export class Namespace {
    * @param socket The socket to check the authentication for
    * @returns Whether the socket is authorized to access the namespace
    */
-  private async checkNamespaceAuth(socket: Socket) {
-    for (let auth of this.authHandlers) {
-      if (!(await auth({ socket, namespace: this.name }))) {
+  private async checkNamespaceAuth(
+    socket: Socket
+  ) {
+    for (const auth of this.authHandlers) {
+      if (
+        !(await auth({
+          socket,
+          namespace: this.name
+        }))
+      ) {
         return false;
       }
     }
@@ -79,10 +104,20 @@ export class Namespace {
    * @param socket The socket that the request was made on
    * @param handler The name of the handler that was unauthorized
    */
-  private unauthorized(socket: Socket, handler: string) {
+  private unauthorized(
+    socket: Socket,
+    handler: string
+  ) {
     socket.on(handler, (data, callback) => {
-      if (!callback || typeof callback !== 'function') return;
-      callback({ success: false, error: 'Unauthorized' });
+      if (
+        !callback ||
+        typeof callback !== 'function'
+      )
+        return;
+      callback({
+        success: false,
+        error: 'Unauthorized'
+      });
     });
   }
 
@@ -90,10 +125,17 @@ export class Namespace {
    * Unauthorizes all handlers in the namespace.
    */
   private unauthorizeAll() {
-    this.io.use((socket, next) => {
+    this.io.use((socket) => {
       socket.onAny((data, callback) => {
-        if (!callback || typeof callback !== 'function') return;
-        callback({ success: false, error: 'Unauthorized' });
+        if (
+          !callback ||
+          typeof callback !== 'function'
+        )
+          return;
+        callback({
+          success: false,
+          error: 'Unauthorized'
+        });
       });
     });
   }
@@ -105,28 +147,54 @@ export class Namespace {
    * @param schema The schema to verify the data against
    * @returns Whether the data is valid
    */
-  private verifyData(data: any, callback: any, schema: any) {
-    if (!callback || typeof callback !== 'function') return false;
+  private verifyData(
+    data: any,
+    callback: any,
+    schema: any
+  ) {
+    if (
+      !callback ||
+      typeof callback !== 'function'
+    )
+      return false;
 
     if (!data || typeof data !== 'object') {
-      callback({ success: false, error: 'Provided data is not an object (got ' + typeof data + ')' });
+      callback({
+        success: false,
+        error:
+          'Provided data is not an object (got ' +
+          typeof data +
+          ')'
+      });
       return false;
     }
 
     if (!schema) return true;
 
-    for (let key in schema) {
-      if (data[key] == null || data[key] == undefined) {
-        callback({ success: false, error: `Missing required field: ${key}` });
+    for (const key in schema) {
+      if (
+        data[key] == null ||
+        data[key] == undefined
+      ) {
+        callback({
+          success: false,
+          error: `Missing required field: ${key}`
+        });
         return false;
       }
 
-      if (schema[key] !== 'any' && typeof data[key] !== schema[key]) {
-        callback({ success: false, error: `Invalid type for field ${key}: ${typeof data[key]} (expected ${schema[key]})` });
+      if (
+        schema[key] !== 'any' &&
+        typeof data[key] !== schema[key]
+      ) {
+        callback({
+          success: false,
+          error: `Invalid type for field ${key}: ${typeof data[key]} (expected ${schema[key]})`
+        });
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -137,21 +205,38 @@ export class Namespace {
   applyHandlers(socket: Socket) {
     this.handlers.forEach(async (handler) => {
       // check authentication
-      if (!(await this.checkAuth(socket, handler)))
-        return this.unauthorized(socket, handler.name);
+      if (
+        !(await this.checkAuth(socket, handler))
+      )
+        return this.unauthorized(
+          socket,
+          handler.name
+        );
 
-      socket.on(handler.name, (data, callback) => {
-        if (!this.verifyData(data, callback, handler.schema)) return;
+      socket.on(
+        handler.name,
+        (data, callback) => {
+          if (
+            !this.verifyData(
+              data,
+              callback,
+              handler.schema
+            )
+          )
+            return;
 
-        console.log('Handling', handler.name);
-        handler.method({
-          data,
-          success: (data) => callback({ success: true, data }),
-          error: (error) => callback({ success: false, error }),
-          callback,
-          socket
-        });
-      });
+          console.log('Handling', handler.name);
+          handler.method({
+            data,
+            success: (data) =>
+              callback({ success: true, data }),
+            error: (error) =>
+              callback({ success: false, error }),
+            callback,
+            socket
+          });
+        }
+      );
     });
   }
 
@@ -162,4 +247,4 @@ export class Namespace {
   addHandler(handler: Handler) {
     this.handlers.push(handler);
   }
-};
+}

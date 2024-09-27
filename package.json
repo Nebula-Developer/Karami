@@ -9,7 +9,7 @@
     "dev": "tsc -w",
     "build": "tsc",
     "lint": "eslint",
-    "format": "prettier --write"
+    "format": "prettier . --write"
   },
   "keywords": [],
   "author": "",

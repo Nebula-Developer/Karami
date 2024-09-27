@@ -9,9 +9,9 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "baseUrl": ".",
+    "baseUrl": "."
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
-  "types": ["node"],
+  "types": ["node"]
 }
