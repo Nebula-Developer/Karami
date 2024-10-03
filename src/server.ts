@@ -51,8 +51,14 @@ export class Karami {
   private _config: ServerConfig = {};
 
   set config(config: ServerConfig) {
+    if (typeof config !== 'object')
+      throw new Error(
+        'The provided config is not an object.'
+      );
     this._config = mapDefaultConfig(config);
-    this._config.namespaces?.forEach((namespace) => namespace.load());
+    this._config.namespaces?.forEach(namespace =>
+      namespace.load()
+    );
   }
 
   get config() {
@@ -98,4 +104,4 @@ export class Karami {
   }
 }
 
-export const testServer = new Server();
+export default Karami;

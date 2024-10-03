@@ -2,6 +2,7 @@
 dist/
 docs/
 node_modules/
+node_test/
 npm-debug.log
 pnpm-lock.yaml
 yarn-error.log

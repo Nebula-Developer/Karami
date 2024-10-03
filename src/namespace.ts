@@ -9,7 +9,6 @@ import {
   Socket
 } from 'socket.io';
 
-
 /**
  * Empty {@link HandlerProps} for use in special handlers like `connect` and `disconnect`.
  */
@@ -46,6 +45,16 @@ export class Namespace {
    * @param server The {@link Karami} server that the namespace is attached to
    */
   constructor(name: string, server: Karami) {
+    if (!name)
+      throw new Error(
+        'A name is required to create a namespace.'
+      );
+
+    if (!server)
+      throw new Error(
+        'A Karami server is required to create a namespace.'
+      );
+
     this.name = name;
     this.server = server;
     this.io = server.io.of(name);
@@ -175,11 +184,14 @@ export class Namespace {
     if (!schema) return true;
 
     for (const key in schema) {
-      const rule = typeof schema[key] === 'object' ? schema[key] : { type: schema[key], required: true };
+      const rule =
+        typeof schema[key] === 'object'
+          ? schema[key]
+          : { type: schema[key], required: true };
 
       if (
         (data[key] == null ||
-        data[key] == undefined) &&
+          data[key] == undefined) &&
         rule.required
       ) {
         callback({
@@ -195,7 +207,9 @@ export class Namespace {
       ) {
         callback({
           success: false,
-          error: `Invalid type for field '${key}' (expected '${rule.type}', got '${typeof data[key]}')`
+          error: `Invalid type for field '${key}' (expected '${
+            rule.type
+          }', got '${typeof data[key]}')`
         });
         return false;
       }
@@ -280,5 +294,7 @@ export class Namespace {
   /**
    * Method to ensure that the namespace has been initialized.
    */
-  load() { }
+  load() {}
 }
+
+export default Namespace;
