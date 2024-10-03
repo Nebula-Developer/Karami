@@ -1,7 +1,9 @@
-import { Karami } from "@/server";
+import { Karami } from '@/server';
 
 const server = new Karami({ port: 3001 });
-const testNamespace = server.createNamespace('test');
+const testNamespace = server.createNamespace(
+  'test'
+);
 
 testNamespace.addHandler({
   name: 'connect',
@@ -17,9 +19,7 @@ testNamespace.addHandler({
     success({ message: `Hello, ${data.name}!` });
   },
   auth: [
-    async ({ socket }) => {
-      return socket.handshake.auth.token === 'secret';
-    }    
+    async ({ auth }) => auth.token === 'secret'
   ]
 });
 

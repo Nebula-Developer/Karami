@@ -82,7 +82,8 @@ export class Namespace {
       if (
         !(await auth({
           socket,
-          namespace: this
+          namespace: this,
+          auth: socket.handshake.auth
         }))
       ) {
         return false;
@@ -103,7 +104,8 @@ export class Namespace {
       if (
         !(await auth({
           socket,
-          namespace: this
+          namespace: this,
+          auth: socket.handshake.auth
         }))
       ) {
         return false;

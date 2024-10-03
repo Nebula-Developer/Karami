@@ -106,6 +106,8 @@ export type AuthHandlerProps = {
   socket: Socket;
   /** The namespace that the socket is attempting to access */
   namespace: Namespace;
+  /** The authentication object that was passed to the socket */
+  auth: any;
 };
 
 /**
@@ -114,6 +116,8 @@ export type AuthHandlerProps = {
  *
  * {@link AuthHandler}s are called before any {@link Handler}s are executed, and
  * can also act as a middleware for the {@link Namespace}.
+ *
+ * @returns Whether the client is authorized to access the {@link Namespace} or {@link Handler}.
  */
 export type AuthHandler = (
   props: AuthHandlerProps

@@ -48,23 +48,28 @@ export class Karami {
   httpServer: HttpServer;
 
   /** The configuration for the server */
-  public config: ServerConfig;
+  private _config: ServerConfig = {};
+
+  set config(config: ServerConfig) {
+    this._config = mapDefaultConfig(config);
+    this._config.namespaces?.forEach((namespace) => namespace.load());
+  }
+
+  get config() {
+    return this._config;
+  }
 
   /**
    * Initializes a new {@link Karami} instance.
    * @param config The configuration for the new instance
    */
   constructor(config: ServerConfig = {}) {
-    this.config = mapDefaultConfig(config);
+    this.config = config;
     this.httpServer = new HttpServer();
     this.io = new Server(this.httpServer, {
       cors: {
         origin: '*'
       }
-    });
-
-    this.config.namespaces?.forEach(namespace => {
-      namespace.load();
     });
   }
 
