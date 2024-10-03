@@ -4,14 +4,11 @@
     "module": "CommonJS",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "declaration": true,
-    "outDir": "dist",
+    "noEmit": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["../src/*"]
     },
     "baseUrl": "."
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"],
   "types": ["node"]
 }

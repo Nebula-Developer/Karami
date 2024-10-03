@@ -1,9 +1,12 @@
 {
   "name": "karami",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.2",
+  "description": "Simple library for creating powerful socket.io servers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "doc": "typedoc --out docs src",
     "dev": "tsc -w",
@@ -11,8 +14,14 @@
     "lint": "eslint",
     "format": "prettier --write src/**/*.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "socket.io",
+    "server",
+    "typescript",
+    "auth",
+    "middleware"
+  ],
+  "author": "NebulaDev",
   "license": "ISC",
   "dependencies": {
     "@types/node": "^22.7.3",
