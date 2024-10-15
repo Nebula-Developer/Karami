@@ -246,8 +246,8 @@ export class Namespace {
    * Applies all registered handlers to a socket.
    * @param socket The socket to apply the handlers to
    */
-  applyHandlers(socket: Socket) {
-    this.forEachHandler(
+  async applyHandlers(socket: Socket) {
+    await this.forEachHandler(
       this.handlers,
       socket,
       handler => {
@@ -261,7 +261,8 @@ export class Namespace {
             socket.addListener('disconnect', () =>
               handler.method({
                 ...EmptyHandlerProps,
-                socket
+                socket,
+                namespace: this
               })
             );
             return;
@@ -269,7 +270,7 @@ export class Namespace {
       }
     );
 
-    this.forEachHandler(
+    await this.forEachHandler(
       this.handlers,
       socket,
       handler => {
@@ -309,7 +310,8 @@ export class Namespace {
                   error
                 }),
               callback,
-              socket
+              socket,
+              namespace: this
             });
           }
         );

@@ -71,6 +71,10 @@ export type HandlerProps = {
    * The socket that is being handled.
    */
   socket: Socket;
+  /**
+   * The namespace that the handler is being called from.
+   */
+  namespace?: Namespace;
 };
 
 /**
