@@ -83,7 +83,7 @@ export type HandlerProps = {
 export type HandlerMethod = (
   /** The properties that are passed to a socket handler */
   props: HandlerProps
-) => void;
+) => void | Promise<void>;
 
 /**
  * Constructor for producing a socket handler

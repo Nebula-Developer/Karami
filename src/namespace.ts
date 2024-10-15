@@ -39,6 +39,9 @@ export class Namespace {
   /** The `socket.io` Namespace that this namespace is attached to */
   io: IONamespace;
 
+  /** Whether to use pre-connect event caching */
+  preConnectCache: boolean = true;
+
   /**
    * Initializes a new {@link Namespace} instance.
    * @param name The name of the namespace
@@ -227,7 +230,9 @@ export class Namespace {
   async forEachHandler(
     handlers: Handler[],
     socket: Socket,
-    callback: (handler: Handler) => void
+    callback: (
+      handler: Handler
+    ) => void | Promise<void>
   ) {
     for (const handler of handlers) {
       if (
@@ -238,7 +243,7 @@ export class Namespace {
           handler.name
         );
 
-      callback(handler);
+      await callback(handler);
     }
   }
 
@@ -247,16 +252,52 @@ export class Namespace {
    * @param socket The socket to apply the handlers to
    */
   async applyHandlers(socket: Socket) {
+    const eventCache: any[] = [];
+    const eventCacheMethod = (...args: any[]) =>
+      eventCache.push(args);
+    if (this.preConnectCache)
+      socket.onAny(eventCacheMethod);
+
+    const runHandler = async (
+      handler: Handler,
+      data: any,
+      callback: any
+    ) => {
+      if (
+        !this.verifyData(
+          data,
+          callback,
+          handler.schema
+        )
+      )
+        return;
+
+      handler.method({
+        data,
+        success: data =>
+          callback({ success: true, data }),
+        error: error =>
+          callback({
+            success: false,
+            error
+          }),
+        callback,
+        socket,
+        namespace: this
+      });
+    };
+
     await this.forEachHandler(
       this.handlers,
       socket,
-      handler => {
+      async handler => {
         switch (handler.name) {
           case 'connect':
-            return handler.method({
+            await handler.method({
               ...EmptyHandlerProps,
               socket
             });
+            break;
           case 'disconnect':
             socket.addListener('disconnect', () =>
               handler.method({
@@ -269,6 +310,8 @@ export class Namespace {
         }
       }
     );
+
+    socket.offAny(eventCacheMethod);
 
     await this.forEachHandler(
       this.handlers,
@@ -290,33 +333,20 @@ export class Namespace {
 
         socket.on(
           handler.name,
-          (data, callback) => {
-            if (
-              !this.verifyData(
-                data,
-                callback,
-                handler.schema
-              )
-            )
-              return;
-
-            handler.method({
-              data,
-              success: data =>
-                callback({ success: true, data }),
-              error: error =>
-                callback({
-                  success: false,
-                  error
-                }),
-              callback,
-              socket,
-              namespace: this
-            });
-          }
+          (data, callback) =>
+            runHandler(handler, data, callback)
         );
       }
     );
+
+    if (this.preConnectCache) {
+      eventCache.forEach(async args => {
+        for (const handler of this.handlers) {
+          if (handler.name === args[0])
+            runHandler(handler, args[1], args[2]);
+        }
+      });
+    }
   }
 
   /**
