@@ -219,12 +219,17 @@ export class Namespace {
   }
 
   /**
-   * Applies all registered handlers to a socket.
+   * Iterates through all handlers, checking if the socket is authorized to access them before running the callback.
+   * @param handlers The handlers to iterate through
    * @param socket The socket to apply the handlers to
+   * @param callback The callback to run for each handler
    */
-  applyHandlers(socket: Socket) {
-    this.handlers.forEach(async handler => {
-      // check authentication
+  async forEachHandler(
+    handlers: Handler[],
+    socket: Socket,
+    callback: (handler: Handler) => void
+  ) {
+    for (const handler of handlers) {
       if (
         !(await this.checkAuth(socket, handler))
       )
@@ -233,46 +238,83 @@ export class Namespace {
           handler.name
         );
 
-      switch (handler.name) {
-        case 'connect':
-          return handler.method({
-            ...EmptyHandlerProps,
-            socket
-          });
-        case 'disconnect':
-          socket.on('disconnect', () =>
-            handler.method({
+      callback(handler);
+    }
+  }
+
+  /**
+   * Applies all registered handlers to a socket.
+   * @param socket The socket to apply the handlers to
+   */
+  applyHandlers(socket: Socket) {
+    this.forEachHandler(
+      this.handlers,
+      socket,
+      handler => {
+        switch (handler.name) {
+          case 'connect':
+            return handler.method({
               ...EmptyHandlerProps,
               socket
-            })
-          );
-          return;
-      }
-
-      socket.on(
-        handler.name,
-        (data, callback) => {
-          if (
-            !this.verifyData(
-              data,
-              callback,
-              handler.schema
-            )
-          )
+            });
+          case 'disconnect':
+            socket.addListener('disconnect', () =>
+              handler.method({
+                ...EmptyHandlerProps,
+                socket
+              })
+            );
             return;
-
-          handler.method({
-            data,
-            success: data =>
-              callback({ success: true, data }),
-            error: error =>
-              callback({ success: false, error }),
-            callback,
-            socket
-          });
         }
-      );
-    });
+      }
+    );
+
+    this.forEachHandler(
+      this.handlers,
+      socket,
+      handler => {
+        if (
+          ['connect', 'disconnect'].includes(
+            handler.name
+          )
+        )
+          return;
+
+        if (
+          socket.listenerCount(handler.name) > 0
+        )
+          throw new Error(
+            `Handler '${handler.name}' already exists in the namespace '${this.name}'`
+          );
+
+        socket.on(
+          handler.name,
+          (data, callback) => {
+            if (
+              !this.verifyData(
+                data,
+                callback,
+                handler.schema
+              )
+            )
+              return;
+
+            handler.method({
+              data,
+              success: data =>
+                callback({ success: true, data }),
+              error: error =>
+                callback({
+                  success: false,
+                  error
+                }),
+              callback,
+              socket
+            });
+          }
+        );
+      }
+    );
   }
 
   /**

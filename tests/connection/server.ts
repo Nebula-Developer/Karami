@@ -1,12 +1,13 @@
-import { Karami } from '@/index';
+import { Karami, logger } from '@/index';
 
 const server = new Karami({
   port: 3001,
   useHttpServer: false,
   onStart: () => {
-    console.log('Server started on port 3001!');
+    logger.log('Server started on port 3001!');
   }
 });
+
 const testNamespace = server.createNamespace(
   'test'
 );
@@ -14,7 +15,7 @@ const testNamespace = server.createNamespace(
 testNamespace.addHandler({
   name: 'connect',
   method: ({ socket }) => {
-    console.log('Connected:', socket.id);
+    logger.log('Connected:', socket.id);
   }
 });
 
