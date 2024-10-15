@@ -1,6 +1,12 @@
 import { Karami } from '@/index';
 
-const server = new Karami({ port: 3001 });
+const server = new Karami({
+  port: 3001,
+  useHttpServer: false,
+  onStart: () => {
+    console.log('Server started on port 3001!');
+  }
+});
 const testNamespace = server.createNamespace(
   'test'
 );

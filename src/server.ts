@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Server, ServerOptions } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { Namespace } from './namespace';
 
@@ -12,7 +12,7 @@ export type ServerConfig = {
 
   /**
    * The host that the server should listen on
-   * @default localhost
+   * @default "localhost"
    */
   host?: string;
 
@@ -21,6 +21,38 @@ export type ServerConfig = {
    * @default []
    */
   namespaces?: Namespace[];
+
+  /**
+   * A method that is called when the server is started
+   * @default () => {}
+   */
+  onStart?: () => void;
+
+  /**
+   * A custom `HttpServer` instance that the server should use
+   * @default undefined
+   */
+  httpServer?: HttpServer;
+
+  /**
+   * A custom `socket.io` server instance that the server should use
+   * @default undefined
+   */
+  io?: Server;
+
+  /**
+   * Configuration to pass to the `socket.io` server instance
+   * @default { cors: { origin: '*' } }
+   */
+  ioConfig?: Partial<ServerOptions>;
+
+  /**
+   * Whether to use an HTTP server or not
+   *
+   * If set to `false`, the server will use the `socket.io` server directly.
+   * @default true
+   */
+  useHttpServer?: boolean;
 };
 
 /** Maps default config for any undefined values in the provided
@@ -31,7 +63,16 @@ export function mapDefaultConfig(
   return {
     port: config.port || 3000,
     host: config.host || 'localhost',
-    namespaces: config.namespaces || []
+    namespaces: config.namespaces || [],
+    onStart: config.onStart || (() => {}),
+    httpServer: config.httpServer || undefined,
+    io: config.io || undefined,
+    ioConfig: config.ioConfig || {
+      cors: {
+        origin: '*'
+      }
+    },
+    useHttpServer: config.useHttpServer ?? true
   };
 }
 
@@ -45,7 +86,7 @@ export class Karami {
   io: Server;
 
   /** The http server instance */
-  httpServer: HttpServer;
+  httpServer?: HttpServer;
 
   /** The configuration for the server */
   private _config: ServerConfig = {};
@@ -71,25 +112,49 @@ export class Karami {
    */
   constructor(config: ServerConfig = {}) {
     this.config = config;
-    this.httpServer = new HttpServer();
-    this.io = new Server(this.httpServer, {
-      cors: {
-        origin: '*'
-      }
-    });
+
+    if (this.config.useHttpServer)
+      this.httpServer =
+        this.config.httpServer ||
+        new HttpServer();
+
+    this.io =
+      this.config.io ||
+      new Server(
+        ...([
+          this.config.useHttpServer &&
+            this.httpServer,
+          this.config.ioConfig
+        ] as any[])
+      );
   }
 
   /** Starts the server, and listens on the specified port and host. */
   start() {
+    if (
+      !this.config.useHttpServer ||
+      !this.httpServer
+    ) {
+      this.io.listen(this.config.port ?? 3000);
+      this.config.onStart?.();
+      return;
+    }
+
     this.httpServer.listen(
       this.config.port,
       this.config.host,
-      () => {
-        console.log(
-          `Server running at http://${this.config.host}:${this.config.port}/`
-        );
-      }
+      () => this.config.onStart?.()
     );
+  }
+
+  /** Stops the HTTP server. */
+  stop() {
+    if (
+      this.config.useHttpServer &&
+      this.httpServer
+    )
+      this.httpServer.close();
+    else this.io.close();
   }
 
   /**

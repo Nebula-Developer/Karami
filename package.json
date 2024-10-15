@@ -1,6 +1,6 @@
 {
   "name": "karami",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Simple library for creating powerful socket.io servers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,8 @@
     "dev": "tsc -w",
     "build": "tsc",
     "lint": "eslint",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "prepublish": "pnpm run build || npm run build"
   },
   "keywords": [
     "socket.io",
