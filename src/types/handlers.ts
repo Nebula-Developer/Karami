@@ -72,6 +72,10 @@ export type HandlerProps = {
    */
   socket: Socket;
   /**
+   * The authentication object that was passed to the socket.
+   */
+  auth: any;
+  /**
    * The namespace that the handler is being called from.
    */
   namespace?: Namespace;

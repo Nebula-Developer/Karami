@@ -12,11 +12,8 @@ const testNamespace = server.createNamespace(
   'test'
 );
 
-testNamespace.addHandler({
-  name: 'connect',
-  method: ({ socket }) => {
-    logger.log('Connected:', socket.id);
-  }
+testNamespace.use(({ socket }) => {
+  logger.log('Connected:', socket.id);
 });
 
 testNamespace.addHandler({

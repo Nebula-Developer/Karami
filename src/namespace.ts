@@ -2,6 +2,7 @@ import { Karami } from './server';
 import {
   AuthHandler,
   Handler,
+  HandlerMethod,
   HandlerProps
 } from './types/handlers';
 import {
@@ -17,7 +18,8 @@ const EmptyHandlerProps: HandlerProps = {
   success: () => {},
   error: () => {},
   callback: () => {},
-  socket: {} as Socket
+  socket: {} as Socket,
+  auth: {}
 };
 
 /**
@@ -283,7 +285,8 @@ export class Namespace {
           }),
         callback,
         socket,
-        namespace: this
+        namespace: this,
+        auth: socket.handshake.auth
       });
     };
 
@@ -295,7 +298,9 @@ export class Namespace {
           case 'connect':
             await handler.method({
               ...EmptyHandlerProps,
-              socket
+              socket,
+              auth: socket.handshake.auth,
+              namespace: this
             });
             break;
           case 'disconnect':
@@ -303,6 +308,7 @@ export class Namespace {
               handler.method({
                 ...EmptyHandlerProps,
                 socket,
+                auth: socket.handshake.auth,
                 namespace: this
               })
             );
@@ -355,6 +361,17 @@ export class Namespace {
    */
   addHandler(handler: Handler) {
     this.handlers.push(handler);
+  }
+
+  /**
+   * Adds a new middleware handler to the namespace.
+   * @param method The method to run before each handler
+   */
+  use(method: HandlerMethod) {
+    this.addHandler({
+      name: 'connect',
+      method
+    });
   }
 
   /**
